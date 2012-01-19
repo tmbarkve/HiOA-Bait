@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- General -->
+    <string name="hello">Menu</string>
+    <string name="app_name">HiOA Recruiting Decoy</string>
+    
+    <!-- DecoyActivity variables -->
+    
+    <!-- Option menu variables -->
+    <string name="option_menu_about">Om</string>
+    <string name="option_menu_connect">Koble til</string>
+
+</resources>
