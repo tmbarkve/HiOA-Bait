@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- General -->
+    <color name="background_grey">#CECECE</color>
+    <color name="black">#000000</color>
+    <color name="dark_grey">#708090</color>
+    <color name="grey">#BEBEBE</color>
+    <color name="red">#CE0000</color>
+    <color name="blue">#0000FF</color>
+    <color name="green">#228B22</color>
+    
+    <!-- Header & Footer Section -->
+    <color name="footer_spacer">#CE0000</color>
+    <color name="header_spacer">#CE0000</color>
+</resources>

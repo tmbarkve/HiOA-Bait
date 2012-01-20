@@ -1,27 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
-    <LinearLayout 
-        android:layout_width="fill_parent"
-        android:layout_height="50dp">
-        <ImageView 
-        	android:layout_width="wrap_content"
-        	android:layout_height="wrap_content" 
-        	android:background="@drawable/header_hioa" 
-        	android:layout_marginLeft="5dp"/>
-    </LinearLayout>
-    <LinearLayout 
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#CECECE">
-     
-    </LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_grey">
+	
+	<!-- Header -->
+    <include
+        android:id="@+id/header" 
+        layout="@layout/header"/>
+	
+	<!-- Footer -->
+    <include
+        android:id="@+id/footer" 
+        layout="@layout/footer"/>
+	
+	<!-- Body -->
+	<LinearLayout 
+        android:id="@+id/bait_body"
+        android:layout_width="match_parent" 
+        android:layout_height="match_parent"
+        android:layout_below="@id/header" 
+        android:layout_above="@id/footer"
+        android:orientation="vertical"
+        android:paddingBottom="5sp" 
+        android:background="@color/background_grey">
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/hello" />
-
-</LinearLayout>
+	    <TextView 
+  		    android:id="@+id/bait_header_text"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginTop="5dp" 
+		    android:layout_marginBottom="3dp"
+		    android:text="@string/bait_header_text"
+		    android:textSize="18dp"
+		    android:textStyle="bold"
+		    android:textColor="@color/dark_grey"
+		    android:gravity="center_horizontal" />
+	    
+  		<View 
+		    android:id="@+id/header_spacer"
+   		    android:layout_width="250dp" 
+		    android:layout_height="2dp" 
+		    android:layout_marginBottom="10dp"
+		    android:layout_gravity="center_horizontal" 
+		    android:background="@color/grey" />
+  		
+		<SeekBar
+		    android:id="@+id/seekBar1"
+		    android:layout_width="250dp"
+		    android:layout_height="30dp"
+		    android:layout_gravity="center_horizontal"
+			android:layout_marginBottom="5dp" />
+        <TableLayout 
+			android:layout_width="match_parent" 
+			android:layout_height="wrap_content"
+			android:layout_marginTop="20dp"
+			android:gravity="center_horizontal"
+			android:layout_gravity="center">
+			<TableRow
+   				android:layout_width="match_parent" 
+				android:layout_height="wrap_content"
+				android:gravity="center">	  	   	
+				<Button
+				    android:id="@+id/bait_button_top_left"
+				    android:layout_width="115dp"
+				    android:layout_height="115dp"
+				    android:text="@string/bait_top_left"
+				    android:layout_margin="7dp" />
+			
+			    <Button
+			        android:id="@+id/bait_button_top_right"
+			        android:layout_width="115dp"
+			        android:layout_height="115dp"
+			        android:text="@string/bait_top_right" 
+			        android:layout_margin="7dp"/>
+			</TableRow>
+			<TableRow
+  				android:layout_width="match_parent" 
+				android:layout_height="wrap_content"
+				android:gravity="center">
+			    <Button
+			        android:id="@+id/bait_button_bottom_left"
+			        android:layout_width="115dp"
+			        android:layout_height="115dp"
+			        android:text="@string/bait_bottom_left"
+			        android:layout_margin="7dp" />
+			
+			    <Button
+			        android:id="@+id/bait_button_bottom_right"
+			        android:layout_width="115dp"
+			        android:layout_height="115dp"
+			        android:text="@string/bait_bottom_right"
+			        android:layout_margin="7dp" />
+		   	</TableRow>
+        </TableLayout>
+	</LinearLayout>
+</RelativeLayout>

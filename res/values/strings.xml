@@ -6,9 +6,20 @@
     <string name="app_name">HiOA Recruiting Decoy</string>
     
     <!-- BaitActivity variables -->
+    <string name="bait_header_text">Arduino Kontrollpanel</string>
+        
+    <string name="bait_top_left">Top L</string>
+    <string name="bait_top_right">Top R</string>
+    <string name="bait_bottom_left">Bottom L</string>
+    <string name="bait_bottom_right">Bottom R</string>
     
-    <!-- Option menu variables -->
     <string name="option_menu_about">Om</string>
     <string name="option_menu_connect">Koble til</string>
+
+    <!-- ConnectionActivity variables -->
+    <string name="connection_activity_header_text">Bluetooth Kontrollpanel</string>
+    <string name="toggle_bluetooth_button_on">Bluetooth på</string>
+    <string name="toggle_bluetooth_button_off">Bluetooth av</string>
+    
 
 </resources>
