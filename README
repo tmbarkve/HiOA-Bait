@@ -1,9 +1,8 @@
 HiOA Student Recruiting Bait
 
 This application is written for the purpose of introducing potential  
-students to Android application development.
-The application itself is used to control Arduino microcontrollers
-through a bluetooth connection.
+students to Android application development. The application itself is 
+used to control Arduino microcontrollers by using bluetooth communication.
 
 Authors: 
 Torstein M. Barkve - torstein@barkve.no
