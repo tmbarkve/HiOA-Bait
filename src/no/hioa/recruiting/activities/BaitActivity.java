@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Window;
+import android.widget.Button;
 
 public class BaitActivity extends Activity {
     /** Called when the activity is first created. */
@@ -16,6 +17,8 @@ public class BaitActivity extends Activity {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.bait);
+        
+        Button b; 
     }
     
     @Override
