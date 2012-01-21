@@ -52,11 +52,10 @@
 		    android:textOn="@string/toggle_bluetooth_button_on"
 		    android:textOff="@string/toggle_bluetooth_button_off"/>
 		
-		<ListView 
-		    android:id="@+id/connection_list"
-            android:layout_width="match_parent" 
-        	android:layout_height="match_parent">
-		    
+		<ListView
+		  android:id="@+android:id/list"
+		  android:layout_width="match_parent"
+		  android:layout_height="wrap_content" >
 		</ListView>
 	</LinearLayout>
 </RelativeLayout>

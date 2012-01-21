@@ -9,15 +9,24 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application android:icon="@drawable/ic_launcher" android:label="@string/app_name" >
-        <activity android:name=".activities.BaitActivity" android:label="@string/app_name" >
+        <activity 
+            android:name=".activities.BaitActivity" 
+            android:label="@string/app_name" 
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.AboutActivity" android:label="@string/app_name">
+        <activity 
+            android:name=".activities.AboutActivity" 
+            android:label="@string/app_name" 
+            android:screenOrientation="portrait">
         </activity>
-        <activity android:name=".activities.ConnectionActivity" android:label="@string/app_name">
+        <activity 
+            android:name=".activities.ConnectionActivity" 
+            android:screenOrientation="portrait"
+            android:label="@string/app_name">
         </activity>
     </application>
 

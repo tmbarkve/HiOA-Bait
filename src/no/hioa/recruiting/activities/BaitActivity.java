@@ -1,26 +1,17 @@
-package no.hioa.recruiting.activities;
+	package no.hioa.recruiting.activities;
 
 import no.hioa.recruiting.R;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class BaitActivity extends Activity {
 	private static final String TAG = "BaitActivity"; 
@@ -50,7 +41,7 @@ public class BaitActivity extends Activity {
 	   if(D) Log.d(TAG, "--- onOptionsItemSelected ---"); 
 		switch (item.getItemId()) {
 			case R.id.decoy_option_about:
-
+				startActivity(new Intent(getApplicationContext(), AboutActivity.class));
 			break;
 			case R.id.decoy_option_connect:
 				startActivity(new Intent(getApplicationContext(), ConnectionActivity.class)); 
