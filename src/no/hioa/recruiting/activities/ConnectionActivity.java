@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -21,41 +23,51 @@ public class ConnectionActivity extends ListActivity {
 	private static final String TAG = "ConnectionActivity"; 
 	private static final Boolean D = true; 
 	
-    public static final int STATE_NONE = 0;       // we're doing nothing
-    public static final int STATE_CONNECTING = 1; // now initiating an outgoing connection
-    public static final int STATE_CONNECTED = 2;  // now connected to a remote device
-	
-    private static BluetoothDevice[] deviceList; 
+	private static ArrayAdapter<String> mDeviceList; 
     
 	private BluetoothAdapter mBluetoothAdapter;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if(D) Log.d(TAG, "--- onCreate ---"); 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.connection);
-		if(D) Log.d(TAG, "--- onCreate ---"); 
 		
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		
-		ToggleButton t = (ToggleButton) findViewById(R.id.toogleBluetooth);
+		ToggleButton t = (ToggleButton) findViewById(R.id.toggle_bluetooth_button);
 		t.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				// TODO: implement progressbar & button lock
 				if(mBluetoothAdapter.isEnabled()) { 
 					mBluetoothAdapter.disable(); 
+					((ToggleButton) v).setChecked(false);
+					setListAdapter(null);
 				} else { 
 					mBluetoothAdapter.enable(); 
+					((ToggleButton) v).setChecked(true);
 					refreshList(); 
 				}
 			}
 		});
 		
+		Button b = (Button) findViewById(R.id.scan_for_devices_button);
+		b.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				refreshList();
+			}
+		});
+		
+		// Checks if the handset supports bluetooth
 		if(mBluetoothAdapter == null) { 
 			Toast.makeText(ConnectionActivity.this, 
 					"This device does not support bluetooth", Toast.LENGTH_SHORT);
 		}
 		
+		// Checks if Bluetooth is turned on
 		if(mBluetoothAdapter.isEnabled()) { 
 			t.setChecked(true);
 		} else { 
@@ -63,30 +75,62 @@ public class ConnectionActivity extends ListActivity {
 		}
 	}
 	
+	@Override
+	protected void onDestroy() {
+		try {
+			unregisterReceiver(mBcastReceiver);
+		} catch (IllegalArgumentException e) {
+			Log.e(TAG, "--- No Receiver registered ---");
+		}
+		super.onDestroy();
+	}
+	
+
+    @Override
+    public void onPause() {
+		try {
+			unregisterReceiver(mBcastReceiver);
+		} catch (IllegalArgumentException e) {
+			Log.e(TAG, "--- No Receiver registered ---");
+		}
+        super.onPause();
+    }
+	
 	private void refreshList() {
+		// TODO: implement progressbar
+		if(mBluetoothAdapter.isDiscovering()) mBluetoothAdapter.cancelDiscovery();
 		
-		String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
-				"Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-				"Linux", "OS/2" };
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, values);
-		setListAdapter(adapter);
+		mDeviceList = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+		setListAdapter(mDeviceList);
 		
-		// Create a BroadcastReceiver for ACTION_FOUND
-		private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-		    public void onReceive(Context context, Intent intent) {
-		        String action = intent.getAction();
-		        // When discovery finds a device
-		        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-		            // Get the BluetoothDevice object from the Intent
-		            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-		            // Add the name and address to an array adapter to show in a ListView
-		            mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-		        }
-		    }
-		};
 		// Register the BroadcastReceiver
 		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-		registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
-	}
+		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED); 
+		registerReceiver(mBcastReceiver, filter); 
+		
+		mBluetoothAdapter.startDiscovery(); 
+	} 
+	
+	private final BroadcastReceiver mBcastReceiver = new BroadcastReceiver() {
+		private static final String TAG = "BroadcastReceiver"; 
+		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Gets the intents action identifier
+	        String action = intent.getAction();
+	        // If the action is equal to "device found"
+			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+				Log.i(TAG, "--- Bluetooth device found ---"); 
+				BluetoothDevice device = (BluetoothDevice) intent
+						.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+				Log.i(TAG, "--- " + device.getName() + " ---"); 
+				mDeviceList.add(device.getName() + "\n" + device.getAddress());
+			}
+			
+			if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) { 
+				Log.i(TAG, "--- Bluetooth Scan finished ----"); 
+				ConnectionActivity.this.unregisterReceiver(mBcastReceiver);
+			}
+		}
+	};
 }

@@ -24,7 +24,7 @@
         android:orientation="vertical"
         android:paddingBottom="5sp" 
         android:background="@color/background_grey">
-        
+	    
 	    <TextView 
   		    android:id="@+id/connection_activity_header_text"
 		    android:layout_width="match_parent"
@@ -45,17 +45,30 @@
 		    android:layout_gravity="center_horizontal" 
 		    android:background="@color/grey" />
 
-		<ToggleButton
-		    android:id="@+id/toogleBluetooth"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:textOn="@string/toggle_bluetooth_button_on"
-		    android:textOff="@string/toggle_bluetooth_button_off"/>
-		
+  		<LinearLayout 
+	    	android:layout_width="wrap_content"
+		    android:layout_height="wrap_content">
+		    
+  		    <ToggleButton
+			    android:id="@+id/toggle_bluetooth_button"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:textOn="@string/toggle_bluetooth_button_on"
+			    android:textOff="@string/toggle_bluetooth_button_off"/>
+			
+			<Button
+			   android:id="@+id/scan_for_devices_button"
+			   android:layout_width="wrap_content"
+			   android:layout_height="wrap_content"
+			   android:text="@string/scan_button_text" />
+  		</LinearLayout>
+
 		<ListView
 		  android:id="@+android:id/list"
 		  android:layout_width="match_parent"
 		  android:layout_height="wrap_content" >
 		</ListView>
+		
 	</LinearLayout>
+	
 </RelativeLayout>

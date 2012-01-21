@@ -3,7 +3,7 @@
 
     <!-- General -->
     <string name="hello">Menu</string>
-    <string name="app_name">HiOA Recruiting Decoy</string>
+    <string name="app_name">HiOA Recruiting Bait</string>
     
     <!-- BaitActivity variables -->
     <string name="bait_header_text">Arduino Kontrollpanel</string>
@@ -20,6 +20,7 @@
     <string name="connection_activity_header_text">Bluetooth Kontrollpanel</string>
     <string name="toggle_bluetooth_button_on">Bluetooth på</string>
     <string name="toggle_bluetooth_button_off">Bluetooth av</string>
+    <string name="scan_button_text">Søk etter enheter</string>
     
 
 </resources>
