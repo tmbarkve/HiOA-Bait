@@ -16,8 +16,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -93,7 +91,12 @@ public class ConnectionActivity extends ListActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 				String deviceMacAddress = (mDeviceList.getItem(position).split("\n"))[1];
+				IntentFilter filter = new IntentFilter(AmarinoIntent.ACTION_CONNECTED);
+				filter.addAction(AmarinoIntent.ACTION_CONNECTION_FAILED);
+				filter.addAction(AmarinoIntent.ACTION_PAIRING_REQUESTED);
+				filter.addAction(AmarinoIntent.ACTION_DISCONNECTED);
 				
+				registerReceiver(mBcastReceiver, filter);
 				Amarino.connect(getApplicationContext(), deviceMacAddress);
 			}
 		});
@@ -103,7 +106,6 @@ public class ConnectionActivity extends ListActivity {
 
 	private void initializeBluetooth() {
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		mHandler = new CustomHandler(); 
 
 		// Checks if the handset supports bluetooth
 		if (mBluetoothAdapter == null) {
@@ -164,71 +166,6 @@ public class ConnectionActivity extends ListActivity {
 		mBluetoothAdapter.startDiscovery();
 	}
 	
-	private class CustomHandler extends Handler { 
-		@Override
-		public void handleMessage(Message msg) {
-			Toast.makeText(ConnectionActivity.this, "Message recieved", Toast.LENGTH_LONG).show(); 
-		}
-	}
-	
-	private class ConnectedThread extends Thread {
-		private static final String TAG = "ConnectedThread"; 
-		
-	    private final BluetoothSocket mSocket;
-	    private final InputStream mInStream;
-	    private final OutputStream mOutStream;
-	 
-	    public ConnectedThread(BluetoothSocket socket) {
-	    	if(D) Log.i(TAG, "--- Constructor ---");
-	        mSocket = socket;
-	        InputStream tmpIn = null;
-	        OutputStream tmpOut = null;
-	 
-	        // Get the input and output streams, using temp objects because
-	        // member streams are final
-	        try {
-	            tmpIn = socket.getInputStream();
-	            tmpOut = socket.getOutputStream();
-	        } catch (IOException e) { }
-	 
-	        mInStream = tmpIn;
-	        mOutStream = tmpOut;
-	    }
-	 
-	    public void run() {
-	    	if(D) Log.i(TAG, "--- run() ---");
-	        byte[] buffer = new byte[1024];  // buffer store for the stream
-	        int bytes; // bytes returned from read()
-	 
-	        // Keep listening to the InputStream until an exception occurs
-	        while (true) {
-	            try {
-	                // Read from the InputStream
-	                bytes = mInStream.read(buffer);
-	                // Send the obtained bytes to the UI Activity
-	                mHandler.obtainMessage(MESSAGE_RECEIVED, bytes, -1, buffer)
-	                        .sendToTarget();
-	            } catch (IOException e) {
-	                break;
-	            }
-	        }
-	    }
-	 
-	    /* Call this from the main Activity to send data to the remote device */
-	    public void write(byte[] bytes) {
-	        try {
-	            mOutStream.write(bytes);
-	        } catch (IOException e) { }
-	    }
-	 
-	    /* Call this from the main Activity to shutdown the connection */
-	    public void cancel() {
-	        try {
-	            mSocket.close();
-	        } catch (IOException e) { }
-	    }
-	}
-	
 	private final BroadcastReceiver mAmarinoReceiver = new BroadcastReceiver() {
 		private static final String TAG = "AmarinoReceiver";
 		@Override
@@ -239,12 +176,15 @@ public class ConnectionActivity extends ListActivity {
 			if(action.equals(AmarinoIntent.ACTION_CONNECTED)) {
 				
 			}
+		
 			if(action.equals(AmarinoIntent.ACTION_CONNECTED_DEVICES)) {
 				
 			}
+			
 			if(action.equals(AmarinoIntent.ACTION_CONNECTION_FAILED)) {
 				
 			}
+			
 			if(action.equals(AmarinoIntent.ACTION_DISCONNECTED)) {
 				
 			}
