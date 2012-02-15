@@ -38,7 +38,7 @@
 		    android:gravity="center_horizontal" />
 	    
   		<View 
-		    android:id="@+id/header_spacer"
+		    android:id="@+id/bait_header_spacer"
    		    android:layout_width="250dp" 
 		    android:layout_height="2dp" 
 		    android:layout_marginBottom="10dp"
@@ -46,7 +46,7 @@
 		    android:background="@color/grey" />
   		
 		<SeekBar
-		    android:id="@+id/seekBar1"
+		    android:id="@+id/bait_seekBar1"
 		    android:layout_width="250dp"
 		    android:layout_height="30dp"
 		    android:layout_gravity="center_horizontal"

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/bait_option_connect"
+        android:title="@string/bait_option_menu_connect" />
+    <item android:id="@+id/bait_option_about"
+        android:title="@string/bait_option_menu_about" />
+</menu>
