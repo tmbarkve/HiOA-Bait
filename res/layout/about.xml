@@ -16,7 +16,7 @@
 
 	<!-- Body -->
 	<LinearLayout 
-        android:id="@+id/bait_body"
+        android:id="@+id/about_body"
         android:layout_width="match_parent" 
         android:layout_height="match_parent"
         android:layout_below="@id/header" 

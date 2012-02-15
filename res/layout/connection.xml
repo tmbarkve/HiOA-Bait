@@ -16,7 +16,7 @@
 
 	<!-- Body -->
 	<LinearLayout 
-        android:id="@+id/bait_body"
+        android:id="@+id/connection_body"
         android:layout_width="match_parent" 
         android:layout_height="match_parent"
         android:layout_below="@id/header" 
@@ -24,7 +24,7 @@
         android:orientation="vertical"
         android:paddingBottom="5sp" 
         android:background="@color/background_grey">
-        
+	    
 	    <TextView 
   		    android:id="@+id/connection_activity_header_text"
 		    android:layout_width="match_parent"
@@ -38,24 +38,43 @@
 		    android:gravity="center_horizontal" />
 	    
   		<View 
-		    android:id="@+id/header_spacer"
+		    android:id="@+id/connection_header_spacer"
    		    android:layout_width="250dp" 
 		    android:layout_height="2dp" 
 		    android:layout_marginBottom="10dp"
 		    android:layout_gravity="center_horizontal" 
 		    android:background="@color/grey" />
 
-		<ToggleButton
-		    android:id="@+id/toogleBluetooth"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:textOn="@string/toggle_bluetooth_button_on"
-		    android:textOff="@string/toggle_bluetooth_button_off"/>
-		
+  		<LinearLayout 
+	    	android:layout_width="wrap_content"
+		    android:layout_height="wrap_content">
+		    
+  		    <ToggleButton
+			    android:id="@+id/connection_toggle_bluetooth_button"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:textOn="@string/connection_toggle_bluetooth_button_on"
+			    android:textOff="@string/connection_toggle_bluetooth_button_off"/>
+			
+			<Button
+				android:id="@+id/connection_scan_for_devices_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/connection_scan_button_text" />
+			
+			<Button
+				android:id="@+id/connection_console_button"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/connection_console_button_text" />
+  		</LinearLayout>
+
 		<ListView
 		  android:id="@+android:id/list"
 		  android:layout_width="match_parent"
 		  android:layout_height="wrap_content" >
 		</ListView>
+		
 	</LinearLayout>
+	
 </RelativeLayout>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_grey" >
+
+    <!-- Header -->
+
+    <include
+        android:id="@+id/header"
+        layout="@layout/header" />
+
+    <!-- Footer -->
+
+    <include
+        android:id="@+id/footer"
+        layout="@layout/footer" />
+
+    <EditText
+        android:id="@+id/console_command_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/footer"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/console_submit"
+        android:hint="@string/console_command_in_hint" />
+
+    <ScrollView
+        android:id="@+id/console_scroll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/console_command_in"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/header" >
+
+        <TextView
+            android:id="@+id/console_output"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        
+    </ScrollView>
+
+    <Button
+        android:id="@+id/console_submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/console_command_in"
+        android:text="@string/console_sumit" />
+
+</RelativeLayout>

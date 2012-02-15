@@ -32,7 +32,7 @@ public class BaitActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
     	if(D) Log.d(TAG, "--- onCreateOptionsMenu ---"); 
     	MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.decoy_option_menu, menu);
+        inflater.inflate(R.menu.bait_option_menu, menu);
         return true;
     }
     
@@ -40,10 +40,10 @@ public class BaitActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 	   if(D) Log.d(TAG, "--- onOptionsItemSelected ---"); 
 		switch (item.getItemId()) {
-			case R.id.decoy_option_about:
+			case R.id.bait_option_about:
 				startActivity(new Intent(getApplicationContext(), AboutActivity.class));
 			break;
-			case R.id.decoy_option_connect:
+			case R.id.bait_option_connect:
 				startActivity(new Intent(getApplicationContext(), ConnectionActivity.class)); 
 			break; 
 		}
