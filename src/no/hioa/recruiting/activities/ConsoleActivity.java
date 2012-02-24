@@ -71,4 +71,9 @@ public class ConsoleActivity extends Activity implements OnClickListener {
 					'a', et.getText().toString().toCharArray());
 		}
 	}
+	
+	@Override
+	protected void onStop() {
+		unregisterReceiver(mBroadcastReceiver);
+	}
 }

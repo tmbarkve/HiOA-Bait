@@ -1,8 +1,12 @@
 	package no.hioa.recruiting.activities;
 
 import no.hioa.recruiting.R;
+import no.hioa.recruiting.models.ConnectionStatus;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -13,6 +17,8 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
+import at.abraxas.amarino.Amarino;
+import at.abraxas.amarino.AmarinoIntent;
 
 public class BaitActivity extends Activity {
 	private static final String TAG = "BaitActivity"; 
@@ -20,8 +26,30 @@ public class BaitActivity extends Activity {
 	
 	public static final int CONNECTED_RESULT = 666; 
 	
-	private boolean mConnected;
-	private String mDeviceAddress; 
+	private ConnectionStatus mConnectionStatus; 
+	
+	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String[] devices = intent.getStringArrayExtra(
+					AmarinoIntent.EXTRA_CONNECTED_DEVICE_ADDRESSES);
+			if(devices != null) { 
+				mConnectionStatus.setConnected(true);
+				mConnectionStatus.setDeviceAddress(devices[0]);
+				notify(mConnectionStatus.toString());
+			}
+			else { 
+				mConnectionStatus.setConnected(false);
+				mConnectionStatus.setDeviceAddress(null);
+				notify("No connection established");
+			}
+		}
+		
+		private void notify(String message) { 
+			Log.i(TAG+":mBroadcastReceiver", "--- " + message + " ---"); 
+			Toast.makeText(BaitActivity.this, message, Toast.LENGTH_SHORT).show(); 
+		}
+	};
 	
     /** Called when the activity is first created. */
     @Override
@@ -31,7 +59,11 @@ public class BaitActivity extends Activity {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.bait);
         
-        mConnected = false; 
+        mConnectionStatus = new ConnectionStatus(); 
+		registerReceiver(mBroadcastReceiver, 
+				new IntentFilter(AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
+        
         initButtons();
     }
     
@@ -52,39 +84,26 @@ public class BaitActivity extends Activity {
 			break;
 			case R.id.bait_option_connect:
 				Intent i = new Intent(this, ConnectionActivity.class); 
-				startActivityForResult(i, CONNECTED_RESULT); 
+				startActivity(i); 
 			break; 
 		}
 		return super.onOptionsItemSelected(item);
    }
-   
-   @Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if(requestCode == CONNECTED_RESULT) { 
-			if(D) Log.v(TAG, "--- onActivityResult: requestCode == CONNECTED_RESULT ---");
-			//mConnected = data.getBooleanExtra(ConnectionActivity.EXTRA_IS_CONNECTED, false);
-			//mDeviceAddress = data.getStringExtra(ConnectionActivity.EXTRA_DEVICE_ADDRESS); 
-			//if(mConnected)
-			//	Toast.makeText(this, "Connected to " + mDeviceAddress, Toast.LENGTH_SHORT).show(); 
-		//	else 
-		//		Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show(); 
-		}
-	}
    
    private void initButtons() {
 	   Button topLeft = (Button) findViewById(R.id.bait_button_top_left); 
        topLeft.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				sendToArduino('a');
 			}
 		});
        
-       Button topRight = (Button) findViewById(R.id.bait_button_bottom_right); 
+       Button topRight = (Button) findViewById(R.id.bait_button_top_right); 
        topRight.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				sendToArduino('b');
 			}
 		}); 
        
@@ -92,7 +111,7 @@ public class BaitActivity extends Activity {
        bottomLeft.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				sendToArduino('c');
 			}
 		}); 
        
@@ -100,8 +119,40 @@ public class BaitActivity extends Activity {
        bottomRight.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
+				sendToArduino('d');
 			}
 		});
+	}
+   
+	private void sendToArduino(char data) {
+		if(mConnectionStatus.isConnected()) { 
+			if(D) Log.v(TAG, "--- Sending: " + data); 
+			Amarino.sendDataToArduino(this, mConnectionStatus.getDeviceAddress(), 'a', data);
+		}
+		else {  
+			Toast.makeText(this, "No connection established", Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		registerReceiver(mBroadcastReceiver, 
+				new IntentFilter(AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
+	}
+	
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		registerReceiver(mBroadcastReceiver, 
+				new IntentFilter(AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
+	}
+	
+	@Override
+	protected void onStop() {
+		unregisterReceiver(mBroadcastReceiver);
+		super.onStop();
 	}
 }
