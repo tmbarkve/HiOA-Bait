@@ -1,16 +1,13 @@
 package no.hioa.recruiting.activities;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Set;
-import java.util.UUID;
 
 import no.hioa.recruiting.R;
+import no.hioa.recruiting.models.ConnectionStatus;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,80 +28,92 @@ import at.abraxas.amarino.Amarino;
 import at.abraxas.amarino.AmarinoIntent;
 
 public class ConnectionActivity extends ListActivity {
-	private static final String TAG = "ConnectionActivity";
 	private static final Boolean D = true;
-	private static final int MESSAGE_RECEIVED = 0; 
+	private static final String TAG = "ConnectionActivity";
+			
+	public static final String EXTRA_CONNECTION_STATUS = 
+			"no.hioa.recruiting.activities.ConnectionActivity.CONNECTION_STATUS"; 
 	
-	public static final UUID SUUID = UUID.randomUUID();
-
 	private static ArrayAdapter<String> mDeviceList;
 
 	private BluetoothAdapter mBluetoothAdapter;
 	private ToggleButton mBluetoothOnButton;
+	private ConnectionStatus mConnectionStatus; 
+
+	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+		private static final String TAG = "ConnectionActivity:BroadcastReceiver";
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Gets the intents action identifier
+			String action = intent.getAction();
+			if(D) Log.i(TAG, "--- onReceive mBroadcastReceiver: " + action); 
+			
+			// If the action is equal to "device found"
+			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+				Log.i(TAG, "--- Bluetooth device found ---");
+				BluetoothDevice device = (BluetoothDevice) intent
+						.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+				
+				Log.i(TAG, "--- " + device.getName() + " ---");
+				mDeviceList.add(device.getName() + "\n" + device.getAddress());
+			}
+
+			if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+				ConnectionActivity.this.unregisterReceiver(mBroadcastReceiver);
+				notify("Bluetooth Scan finished");
+			}
+			
+			if(action.equals(AmarinoIntent.ACTION_CONNECTED)) {
+				mConnectionStatus.setConnected(true);
+				notify("Connected to device: " + mConnectionStatus.getDeviceAddress());
+			}
+			
+			if(action.equals(AmarinoIntent.ACTION_CONNECTION_FAILED)) {
+				mConnectionStatus.setConnected(false); 
+				notify("Failed to connect to device: " 
+						+ mConnectionStatus.getDeviceAddress()); 
+			}
+			
+			if(action.equals(AmarinoIntent.ACTION_DISCONNECTED)) {
+				mConnectionStatus = null; 
+				notify("Disconnected"); 
+			}
+			
+			if(action.equals(AmarinoIntent.ACTION_CONNECTED_DEVICES)) { 
+				String[] devices = intent.getStringArrayExtra(
+						AmarinoIntent.EXTRA_CONNECTED_DEVICE_ADDRESSES);
+				if(devices.length > 0) { 
+					mConnectionStatus.setConnected(true);
+					mConnectionStatus.setDeviceAddress(devices[0]);
+					notify(mConnectionStatus.toString());
+				}
+				else { 
+					mConnectionStatus.setConnected(false);
+					mConnectionStatus.setDeviceAddress(null);
+					notify("No connection established");
+				}
+			}
+		}
+		
+		private void notify(String message) { 
+			Log.i(TAG, "--- " + message + " ---"); 
+			Toast.makeText(ConnectionActivity.this, message, Toast.LENGTH_SHORT).show(); 
+		}
+	};
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		if (D) Log.d(TAG, "--- onCreate ---");
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.connection);
-		mDeviceList = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-		setListAdapter(mDeviceList);
-
-		mBluetoothOnButton = (ToggleButton) findViewById(R.id.connection_toggle_bluetooth_button);
-		mBluetoothOnButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// TODO: implement progressbar & button lock
-				if (mBluetoothAdapter.isEnabled()) {
-					mBluetoothAdapter.disable();
-					((ToggleButton) v).setChecked(false);
-					setListAdapter(null);
-				}
-				else {
-					mBluetoothAdapter.enable();
-					((ToggleButton) v).setChecked(true);
-					refreshList();
-				}
-			}
-		});
-
-		Button b = (Button) findViewById(R.id.connection_scan_for_devices_button);
-		b.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				refreshList();
-			}
-		});
-
-		b = (Button) findViewById(R.id.connection_console_button);
-		b.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent i = new Intent(ConnectionActivity.this, ConsoleActivity.class);
-				startActivity(i);
-			}
-		});
-
-		ListView lv = (ListView) findViewById(android.R.id.list);
-		lv.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-				String deviceMacAddress = (mDeviceList.getItem(position).split("\n"))[1];
-				IntentFilter filter = new IntentFilter(AmarinoIntent.ACTION_CONNECTED);
-				filter.addAction(AmarinoIntent.ACTION_CONNECTION_FAILED);
-				filter.addAction(AmarinoIntent.ACTION_PAIRING_REQUESTED);
-				filter.addAction(AmarinoIntent.ACTION_DISCONNECTED);
-				
-				registerReceiver(mBcastReceiver, filter);
-				Amarino.connect(getApplicationContext(), deviceMacAddress);
-			}
-		});
-
-		initializeBluetooth();
+	public void onPause() {
+		try {
+			unregisterReceiver(mBroadcastReceiver);
+		}
+		catch (IllegalArgumentException e) {
+			Log.e(TAG, "--- No Receiver registered ---");
+		}
+		super.onPause();
 	}
 
-	private void initializeBluetooth() {
+	private void initializeBluetooth() {		
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
 		// Checks if the handset supports bluetooth
@@ -129,28 +138,6 @@ public class ConnectionActivity extends ListActivity {
 		}
 	}
 
-	@Override
-	protected void onDestroy() {
-		try {
-			unregisterReceiver(mBcastReceiver);
-		}
-		catch (IllegalArgumentException e) {
-			Log.e(TAG, "--- No Receiver registered ---");
-		}
-		super.onDestroy();
-	}
-
-	@Override
-	public void onPause() {
-		try {
-			unregisterReceiver(mBcastReceiver);
-		}
-		catch (IllegalArgumentException e) {
-			Log.e(TAG, "--- No Receiver registered ---");
-		}
-		super.onPause();
-	}
-
 	private void refreshList() {
 		// TODO: implement progressbar
 		if (mBluetoothAdapter.isDiscovering()) mBluetoothAdapter.cancelDiscovery();
@@ -158,60 +145,118 @@ public class ConnectionActivity extends ListActivity {
 		// Removes all listed devices
 		mDeviceList.clear();
 
-		// Register the BroadcastReceiver
-		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-		registerReceiver(mBcastReceiver, filter);
-
 		mBluetoothAdapter.startDiscovery();
 	}
-	
-	private final BroadcastReceiver mAmarinoReceiver = new BroadcastReceiver() {
-		private static final String TAG = "AmarinoReceiver";
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Log.i(TAG, "--- onReceive"); 
-			String action = intent.getAction();
-			
-			if(action.equals(AmarinoIntent.ACTION_CONNECTED)) {
-				
-			}
+
+	private void setupBroadcastReceiver() {
+		IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+		filter.addAction(AmarinoIntent.ACTION_CONNECT);
+		filter.addAction(AmarinoIntent.ACTION_CONNECTED);
+		filter.addAction(AmarinoIntent.ACTION_CONNECTION_FAILED);
+		filter.addAction(AmarinoIntent.ACTION_PAIRING_REQUESTED);
+		filter.addAction(AmarinoIntent.ACTION_DISCONNECTED);
+		filter.addAction(AmarinoIntent.ACTION_CONNECTED_DEVICES); 
 		
-			if(action.equals(AmarinoIntent.ACTION_CONNECTED_DEVICES)) {
+		registerReceiver(mBroadcastReceiver, filter);
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		if (D) Log.d(TAG, "--- onCreate ---");
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.connection);
+		
+		mConnectionStatus = new ConnectionStatus(); 
+		
+		// Set up and register broadcast receiver and filters
+		setupBroadcastReceiver();
+		
+		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
 				
+		mDeviceList = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+		setListAdapter(mDeviceList);
+
+		// TODO: create textview that holds connection information
+		
+		mBluetoothOnButton = (ToggleButton) findViewById(R.id.connection_toggle_bluetooth_button);
+		mBluetoothOnButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// TODO: implement progressbar & button lock
+				if (mBluetoothAdapter.isEnabled()) {
+					mBluetoothAdapter.disable();
+					((ToggleButton) v).setChecked(false);
+					setListAdapter(null);
+				}
+				else {
+					mBluetoothAdapter.enable();
+					((ToggleButton) v).setChecked(true);
+					refreshList();
+				}
 			}
-			
-			if(action.equals(AmarinoIntent.ACTION_CONNECTION_FAILED)) {
-				
+		});
+
+		Button b = (Button) findViewById(R.id.connection_scan_for_devices_button);
+		b.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(mBluetoothAdapter.isEnabled())
+					refreshList();
+				else 
+					Toast.makeText(ConnectionActivity.this, "Bluetooth is not enabled", 
+							Toast.LENGTH_SHORT).show();
 			}
-			
-			if(action.equals(AmarinoIntent.ACTION_DISCONNECTED)) {
-				
+		});
+
+		b = (Button) findViewById(R.id.connection_console_button);
+		b.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(mConnectionStatus.isConnected()) { 
+					Intent i = new Intent(ConnectionActivity.this, ConsoleActivity.class);
+					i.putExtra(EXTRA_CONNECTION_STATUS, mConnectionStatus);
+					startActivity(i);
+				}
+				else { 
+					Toast.makeText(ConnectionActivity.this, 
+							"Can't open a console, no connections active", 
+							Toast.LENGTH_SHORT).show(); 
+				}
 			}
-			
+		});
+
+		ListView lv = (ListView) findViewById(android.R.id.list);
+		lv.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+				// get the mac address from the second line of the string in the list item
+				if(!mConnectionStatus.isConnected()) { 
+					String deviceMacAddress = (mDeviceList.getItem(position).split("\n"))[1];
+					
+					Log.v(TAG, "--- Connecting to device: " + deviceMacAddress + " ---"); 		
+					mConnectionStatus.setDeviceAddress(deviceMacAddress); 
+					Amarino.connect(ConnectionActivity.this, deviceMacAddress);
+				} 
+				else { 
+					Toast.makeText(ConnectionActivity.this, 
+							"A connection is already established", Toast.LENGTH_SHORT).show(); 
+				}
+			}
+		});
+
+		initializeBluetooth();
+	}
+
+	@Override
+	protected void onDestroy() {
+		try {
+			unregisterReceiver(mBroadcastReceiver);
 		}
-	};
-
-	private final BroadcastReceiver mBcastReceiver = new BroadcastReceiver() {
-		private static final String TAG = "BroadcastReceiver";
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// Gets the intents action identifier
-			String action = intent.getAction();
-			// If the action is equal to "device found"
-			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-				Log.i(TAG, "--- Bluetooth device found ---");
-				BluetoothDevice device = (BluetoothDevice) intent
-						.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				Log.i(TAG, "--- " + device.getName() + " ---");
-				mDeviceList.add(device.getName() + "\n" + device.getAddress());
-			}
-
-			if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-				Log.i(TAG, "--- Bluetooth Scan finished ----");
-				ConnectionActivity.this.unregisterReceiver(mBcastReceiver);
-			}
+		catch (IllegalArgumentException e) {
+			Log.e(TAG, "--- No Receiver registered ---");
 		}
-	};
+		super.onDestroy();
+	}
 }
