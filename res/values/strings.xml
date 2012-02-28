@@ -8,8 +8,8 @@
     <!-- BaitActivity variables -->
     <string name="bait_header_text">Arduino Kontrollpanel</string>
         
-    <string name="bait_top_left">Off</string>
-    <string name="bait_top_right">On</string>
+    <string name="bait_top_left">Led av</string>
+    <string name="bait_top_right">Led på</string>
     <string name="bait_bottom_left">Bottom L</string>
     <string name="bait_bottom_right">Bottom R</string>
     
