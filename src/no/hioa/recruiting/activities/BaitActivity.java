@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,23 +39,51 @@ public class BaitActivity extends Activity {
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String[] devices = intent
-					.getStringArrayExtra(AmarinoIntent.EXTRA_CONNECTED_DEVICE_ADDRESSES);
-			if (devices != null) {
-				mConnection.setConnected(true);
-				// given there only exists one connection
-				mConnection.setDeviceAddress(devices[0]);
-				notify(mConnection.toString());
+			String action = intent.getAction();
+			Log.v(TAG, "---"+action);
+			if (action.equals(AmarinoIntent.ACTION_CONNECTED_DEVICES)) {
+				String[] devices = intent
+						.getStringArrayExtra(AmarinoIntent.EXTRA_CONNECTED_DEVICE_ADDRESSES);
+				if (devices != null) {
+					mConnection.setConnected(true);
+					// given there only exists one connection
+					mConnection.setDeviceAddress(devices[0]);
+					notify(mConnection.toString());
+				} else {
+					mConnection = new ArduinoConnection();
+					notify("No connection established");
+				}
 			}
-			else {
-				mConnection = new ArduinoConnection();
-				notify("No connection established");
+			if (action.equals("android.provider.Telephony.SMS_RECEIVED")) {
+				// ---get the SMS message passed in---
+				Bundle bundle = intent.getExtras();
+				SmsMessage[] msgs = null;
+				String str = "";
+				if (bundle != null) {
+					// ---retrieve the SMS message received---
+					Object[] pdus = (Object[]) bundle.get("pdus");
+					msgs = new SmsMessage[pdus.length];
+					for (int i = 0; i < msgs.length; i++) {
+						msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+						str += "SMS from " + msgs[i].getOriginatingAddress();
+						str += " :";
+						str += msgs[i].getMessageBody().toString();
+						str += "\n";
+					}
+					// ---display the new SMS message---
+					Toast.makeText(context, str, Toast.LENGTH_LONG).show();
+					if(msgs[0].getMessageBody().toString().equals("on"))
+						sendToArduino(LED_ON);
+					else
+						sendToArduino(LED_OFF);
+				}
 			}
 		}
 
 		private void notify(String message) {
 			Log.i(TAG + ":mBroadcastReceiver", "--- " + message + " ---");
-			Toast.makeText(BaitActivity.this, message, Toast.LENGTH_SHORT).show();
+			Toast.makeText(BaitActivity.this, message, Toast.LENGTH_SHORT)
+					.show();
 		}
 	};
 
@@ -62,13 +91,16 @@ public class BaitActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (D) Log.d(TAG, "--- onCreate ---");
+		if (D)
+			Log.d(TAG, "--- onCreate ---");
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bait);
 
 		mConnection = new ArduinoConnection();
-		registerReceiver(mBroadcastReceiver, new IntentFilter(
-				AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+		filter.addAction(AmarinoIntent.ACTION_CONNECTED_DEVICES);
+		registerReceiver(mBroadcastReceiver, filter);
 		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
 
 		initButtons();
@@ -76,7 +108,8 @@ public class BaitActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		if (D) Log.d(TAG, "--- onCreateOptionsMenu ---");
+		if (D)
+			Log.d(TAG, "--- onCreateOptionsMenu ---");
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.bait_option_menu, menu);
 		return true;
@@ -84,15 +117,17 @@ public class BaitActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (D) Log.d(TAG, "--- onOptionsItemSelected ---");
+		if (D)
+			Log.d(TAG, "--- onOptionsItemSelected ---");
 		switch (item.getItemId()) {
-			case R.id.bait_option_about:
-				startActivity(new Intent(getApplicationContext(), AboutActivity.class));
-				break;
-			case R.id.bait_option_connect:
-				Intent i = new Intent(this, ConnectionActivity.class);
-				startActivity(i);
-				break;
+		case R.id.bait_option_about:
+			startActivity(new Intent(getApplicationContext(),
+					AboutActivity.class));
+			break;
+		case R.id.bait_option_connect:
+			Intent i = new Intent(this, ConnectionActivity.class);
+			startActivity(i);
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -133,12 +168,13 @@ public class BaitActivity extends Activity {
 
 	private void sendToArduino(char data) {
 		if (mConnection.isConnected()) {
-			if (D) Log.v(TAG, "--- Sending: " + data);
+			if (D)
+				Log.v(TAG, "--- Sending: " + data);
 			Amarino.sendDataToArduino(this, mConnection.getDeviceAddress(),
 					ARDUINO_FLAG, data);
-		}
-		else {
-			Toast.makeText(this, "No connection established", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(this, "No connection established",
+					Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -151,16 +187,20 @@ public class BaitActivity extends Activity {
 	@Override
 	protected void onRestart() {
 		super.onRestart();
-		registerReceiver(mBroadcastReceiver, new IntentFilter(
-				AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+		filter.addAction(AmarinoIntent.ACTION_CONNECTED_DEVICES);
+		registerReceiver(mBroadcastReceiver, filter);
 		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		registerReceiver(mBroadcastReceiver, new IntentFilter(
-				AmarinoIntent.ACTION_CONNECTED_DEVICES));
+		IntentFilter filter = new IntentFilter();
+		filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+		filter.addAction(AmarinoIntent.ACTION_CONNECTED_DEVICES);
+		registerReceiver(mBroadcastReceiver, filter);
 		sendBroadcast(new Intent(AmarinoIntent.ACTION_GET_CONNECTED_DEVICES));
 	}
 
